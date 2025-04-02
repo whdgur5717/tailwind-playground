@@ -1,5 +1,7 @@
+import { Editor } from "./components/editor"
+
 function App() {
-  return <></>
+  return <Editor />
 }
 
 export default App
