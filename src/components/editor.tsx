@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react"
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
+import ts from "typescript"
 
 const defaultPackages = {
   react: "https://esm.sh/react",
@@ -22,6 +23,40 @@ export const Editor = () => {
   const monacoEl = useRef(null)
   const [imports, setImports] = useState(defaultPackages)
   const [code, setCode] = useState(defaultCode)
+  const addPackage = async (moduleName: string, path: string) => {
+    setImports(prev => ({ ...prev, [moduleName]: path }))
+    const response = await fetch(path)
+    const typePath = response.headers.get("X-Typescript-Types")
+    if (!typePath) {
+      return
+    }
+    const importMap: Record<string, string> = {}
+    const processTypeFile = async (filePath: string) => {
+      if (importMap[filePath]) {
+        console.log(filePath)
+        return
+      }
+      const response = await fetch(filePath)
+      const text = await response.text()
+      importMap[filePath] = text
+      const refFiles = ts.preProcessFile(text, true, true)
+      if (!refFiles.importedFiles.length) {
+        return
+      }
+
+      for (const file of refFiles.importedFiles) {
+        await processTypeFile(file.fileName)
+      }
+      return importMap
+    }
+    await processTypeFile(typePath)
+    console.log(Object.keys(importMap))
+    const worker = await monaco.languages.typescript.getTypeScriptWorker()
+    const currentWorker = await worker()
+    Object.entries(importMap).forEach(([key, value]) =>
+      currentWorker.addFile("inmemory://model/node_modules/" + key, value)
+    )
+  }
 
   useEffect(() => {
     if (monacoEl.current) {
@@ -83,7 +118,9 @@ ${previewScript}
       <div
         ref={monacoEl}
         style={{ flex: 1 }}></div>
-
+      <button onClick={() => addPackage("radix-ui", "https://esm.sh/radix-ui")}>
+        타입 파일 추가
+      </button>
       <iframe
         style={{ flex: 1, border: "none" }}
         srcDoc={htmlTemplate}
