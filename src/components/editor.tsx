@@ -2,6 +2,8 @@ import { useRef, useState, useEffect } from "react"
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
 import ts from "typescript"
 
+//패키지 추가는 https://esm.sh ~ 형태로 추가해야할것 같음 -> 어떤걸 꺼내쓸지는 알바아님
+
 const defaultPackages = {
   react: "https://esm.sh/react",
   "react/": "https://esm.sh/react/",
@@ -23,6 +25,7 @@ export const Editor = () => {
   const monacoEl = useRef(null)
   const [imports, setImports] = useState(defaultPackages)
   const [code, setCode] = useState(defaultCode)
+
   const addPackage = async (moduleName: string, path: string) => {
     setImports(prev => ({ ...prev, [moduleName]: path }))
     const response = await fetch(path)
