@@ -9,8 +9,8 @@ const defaultPackages = {
   "react-dom": "https://esm.sh/react-dom",
   "react-dom/": "https://esm.sh/react-dom/",
   "esbuild-wasm": "https://esm.sh/esbuild-wasm",
-  "radix-ui": "https://esm.sh/radix-ui",
-}
+} //기본적으로 사용될 패키지
+
 const defaultCode = dedent`
   import { createElement } from 'react';
   import { createRoot } from 'react-dom/client';
