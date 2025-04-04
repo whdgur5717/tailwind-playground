@@ -9,7 +9,6 @@ const defaultPackages = {
 	"react-dom": "https://esm.sh/react-dom",
 	"react-dom/": "https://esm.sh/react-dom/",
 	"esbuild-wasm": "https://esm.sh/esbuild-wasm",
-	dedent: "https://esm.sh/dedent",
 } //기본적으로 사용될 패키지
 
 const defaultCode = `
@@ -28,27 +27,33 @@ export const Editor = () => {
 	const [importMap, setImportMap] = useState(defaultPackages)
 	const [editorCode, setEditorCode] = useState(defaultCode)
 
-	const addPackage = async (moduleName: string, path: string) => {
-		setImportMap((prev) => ({ ...prev, [moduleName]: path }))
+	const addPackage = async (path: string) => {
+		const worker = await monaco.languages.typescript.getTypeScriptWorker()
+		const currentWorker = await worker()
+
 		const response = await fetch(path)
 		const typePath = response.headers.get("X-Typescript-Types")
 		if (!typePath) {
 			return
 		}
+
+		currentWorker.addUrl(path, typePath) //패키지가 참조해야 할 타입파일의 경로 저장
+
 		const importMap: Record<string, string> = {}
+
 		const processTypeFile = async (filePath: string) => {
 			if (importMap[filePath]) {
-				console.log(filePath)
 				return
 			}
 			const response = await fetch(filePath)
 			const text = await response.text()
 			importMap[filePath] = text
+
 			const refFiles = ts.preProcessFile(text, true, true)
 			if (!refFiles.importedFiles.length) {
 				return
 			}
-
+			console.log(refFiles, filePath)
 			for (const file of refFiles.importedFiles) {
 				await processTypeFile(file.fileName)
 			}
@@ -56,8 +61,6 @@ export const Editor = () => {
 		}
 		await processTypeFile(typePath)
 
-		const worker = await monaco.languages.typescript.getTypeScriptWorker()
-		const currentWorker = await worker()
 		Object.entries(importMap).forEach(([key, value]) =>
 			currentWorker.addFile("inmemory://model/node_modules/" + key, value),
 		)
