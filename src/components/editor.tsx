@@ -133,9 +133,22 @@ export const Editor = () => {
 			}}
 		>
 			<div ref={monacoEl} style={{ flex: 1 }} />
-			<button onClick={() => addPackage("radix-ui", "https://esm.sh/radix-ui")}>
-				타입 파일 추가
-			</button>
+			<form
+				onSubmit={(e) => {
+					e.preventDefault()
+					const formData = new FormData(e.currentTarget)
+					const packageUrl = formData.get("packageUrl")
+					if (packageUrl) {
+						addPackage(packageUrl.toString())
+					}
+				}}
+			>
+				<input
+					name="packageUrl"
+					className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-foreground file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+				/>
+				<Button type="submit">add package</Button>
+			</form>
 			<iframe
 				title="preview"
 				style={{ flex: 1, border: "none" }}
