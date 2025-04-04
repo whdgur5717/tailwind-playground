@@ -53,7 +53,10 @@ export const Editor = () => {
 			if (!refFiles.importedFiles.length) {
 				return
 			}
-			console.log(refFiles, filePath)
+			for (const reference of refFiles.referencedFiles) {
+				const href = new URL(reference.fileName, filePath).href
+				await processTypeFile(href)
+			}
 			for (const file of refFiles.importedFiles) {
 				await processTypeFile(file.fileName)
 			}
