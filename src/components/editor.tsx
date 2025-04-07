@@ -188,11 +188,12 @@ export const Editor = () => {
       try {
         await esbuild.default.initialize({
           worker: true,
-          wasmURL: 'https://esm.sh/esbuild-wasm'
+          wasmURL: 'https://esm.sh/esbuild-wasm/esbuild.wasm',
         });
 
         const mainCode = ${JSON.stringify(files?.find((f) => f.name === "main.tsx")?.content)}
 
+		
 
         const result = await esbuild.default.transform(mainCode, {
           loader: 'tsx',
