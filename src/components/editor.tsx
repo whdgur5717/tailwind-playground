@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
 import { useEffect, useRef, useState } from "react"
 import ts from "typescript"
+import browser from "../lib/browser?raw"
 import { Input } from "./ui/input"
 
 const defaultPackages = {
@@ -289,6 +290,7 @@ try {
   <head>
     <meta charset="UTF-8">
     <title>Preview</title>
+	<script>${browser}</script>
     <script type="importmap">
       ${JSON.stringify(sources, null, 2)}
     </script>
@@ -300,7 +302,7 @@ try {
     <div id="root">Loading Preview...</div>
   </body>
 </html>
-`.trim()
+`
 
 	return (
 		<div className="box-border flex h-screen w-screen min-w-full flex-col gap-2.5 p-2.5">
