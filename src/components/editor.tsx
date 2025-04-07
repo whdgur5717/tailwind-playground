@@ -58,7 +58,7 @@ if (rootElement) {
 		language: "typescript",
 		uriString: "file:///app.tsx",
 		content: `export const App = () => {
-  return <div>Test입니다</div>}`,
+  return <div className='text-blue-600'>Test입니다</div>}`,
 	},
 ]
 
