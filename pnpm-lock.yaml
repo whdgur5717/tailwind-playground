@@ -20,9 +20,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      dedent:
-        specifier: ^1.5.3
-        version: 1.5.3
       lucide-react:
         specifier: ^0.487.0
         version: 0.487.0(react@19.1.0)
@@ -51,9 +48,6 @@ importers:
       '@biomejs/biome':
         specifier: 1.9.4
         version: 1.9.4
-      '@eslint/js':
-        specifier: ^9.21.0
-        version: 9.23.0
       '@types/react':
         specifier: ^19.0.10
         version: 19.0.12
@@ -63,18 +57,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.3.4
         version: 4.3.4(vite@6.2.3(jiti@2.4.2)(lightningcss@1.29.2))
-      esbuild:
-        specifier: ^0.25.2
-        version: 0.25.2
-      eslint:
-        specifier: ^9.21.0
-        version: 9.23.0(jiti@2.4.2)
-      eslint-plugin-react-hooks:
-        specifier: ^5.1.0
-        version: 5.2.0(eslint@9.23.0(jiti@2.4.2))
-      eslint-plugin-react-refresh:
-        specifier: ^0.4.19
-        version: 0.4.19(eslint@9.23.0(jiti@2.4.2))
       globals:
         specifier: ^15.15.0
         version: 15.15.0
@@ -1474,14 +1456,6 @@ packages:
       supports-color:
         optional: true
 
-  dedent@1.5.3:
-    resolution: {integrity: sha512-NHQtfOOW68WD8lgypbLA5oT+Bt0xXJhiYvoR6SmmNXZfpzOGXwdKWmcwG8N7PwVVWV3eF/68nmD9BaJSsTBhyQ==}
-    peerDependencies:
-      babel-plugin-macros: ^3.1.0
-    peerDependenciesMeta:
-      babel-plugin-macros:
-        optional: true
-
   deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
 
@@ -1511,17 +1485,6 @@ packages:
   escape-string-regexp@4.0.0:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
-
-  eslint-plugin-react-hooks@5.2.0:
-    resolution: {integrity: sha512-+f15FfK64YQwZdJNELETdn5ibXEUQmW1DZL6KXhNnc2heoy/sg9VJJeT7n8TlMWouzWqSWavFkIhHyIbIAEapg==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0
-
-  eslint-plugin-react-refresh@0.4.19:
-    resolution: {integrity: sha512-eyy8pcr/YxSYjBoqIFSrlbn9i/xvxUFa8CjzAYo9cFjgGXqq1hyjihcpZvxRLalpaWmueWR81xn7vuKmAFijDQ==}
-    peerDependencies:
-      eslint: '>=8.40'
 
   eslint-scope@8.3.0:
     resolution: {integrity: sha512-pUNxi75F8MJ/GdeKtVLSbYg4ZI34J6C0C7sbL4YOp2exGwen7ZsuBqKzUhXd0qMQ362yET3z+uPwKeg/0C2XCQ==}
@@ -3465,8 +3428,6 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  dedent@1.5.3: {}
-
   deep-is@0.1.4: {}
 
   detect-libc@2.0.3: {}
@@ -3511,14 +3472,6 @@ snapshots:
   escalade@3.2.0: {}
 
   escape-string-regexp@4.0.0: {}
-
-  eslint-plugin-react-hooks@5.2.0(eslint@9.23.0(jiti@2.4.2)):
-    dependencies:
-      eslint: 9.23.0(jiti@2.4.2)
-
-  eslint-plugin-react-refresh@0.4.19(eslint@9.23.0(jiti@2.4.2)):
-    dependencies:
-      eslint: 9.23.0(jiti@2.4.2)
 
   eslint-scope@8.3.0:
     dependencies:
