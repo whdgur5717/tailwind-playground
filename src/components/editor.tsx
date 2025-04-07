@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
 import { useEffect, useRef, useState } from "react"
 import ts from "typescript"
-import browser from "../lib/browser?raw"
+import browser from "../raw/browser?raw"
 import { Input } from "./ui/input"
 
 const defaultPackages = {
