@@ -1,9 +1,10 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/ui/button"
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
 import { useEffect, useRef, useState } from "react"
 import ts from "typescript"
 import browser from "../raw/browser?raw"
-import { Input } from "./ui/input"
+import { Input } from "../ui/input"
+import { useEditorContext } from "./editorContext"
 
 const defaultPackages = {
 	react: "https://esm.sh/react",
@@ -13,61 +14,13 @@ const defaultPackages = {
 	"esbuild-wasm": "https://esm.sh/esbuild-wasm",
 }
 
-interface FileData {
-	id: string
-	name: string
-	language: string
-	uriString: string
-	content: string
-}
-
-const initialFiles: FileData[] = [
-	{
-		id: "main.tsx",
-		name: "main.tsx",
-		language: "typescript",
-		uriString: "file:///main.tsx",
-		content: `
-import React from 'https://esm.sh/react';
-import { createRoot } from 'https://esm.sh/react-dom/client';
-import { App } from './app.tsx';
-
-const rootElement = document.getElementById("root");
-if (rootElement) {
-    createRoot(rootElement).render(<App/>);
-}
-    `.trim(),
-	},
-	{
-		id: "styles.css",
-		name: "styles.css",
-		language: "css",
-		uriString: "file:///styles.css",
-		content: `
-.hello-css {
-  color: green;
-  margin-top: 10px;
-  border: 1px solid green;
-  padding: 5px;
-}
-    `.trim(),
-	},
-	{
-		id: "app.tsx",
-		name: "app.tsx",
-		language: "typescript",
-		uriString: "file:///app.tsx",
-		content: `export const App = () => {
-  return <div className='text-blue-600'>Test입니다</div>}`,
-	},
-]
-
 export const Editor = () => {
+	const { files, setFiles } = useEditorContext("editor")
+
 	const [editor, setEditor] =
 		useState<monaco.editor.IStandaloneCodeEditor | null>(null)
 	const monacoEl = useRef<HTMLDivElement | null>(null)
-	const [files, setFiles] = useState<FileData[]>(initialFiles)
-	const [activeFileId, setActiveFileId] = useState<string>(initialFiles[0].id)
+	const [activeFileId, setActiveFileId] = useState<string>(files[0].name)
 	const [models, setModels] = useState<Map<string, monaco.editor.ITextModel>>(
 		new Map(),
 	)
@@ -115,6 +68,7 @@ export const Editor = () => {
 		)
 	}
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		if (monacoEl.current && !editor) {
 			const editorInstance = monaco.editor.create(monacoEl.current, {
@@ -123,9 +77,9 @@ export const Editor = () => {
 			}) //에디터 인스턴스 생성 - 최초 한번
 
 			const initialModels = new Map<string, monaco.editor.ITextModel>()
-			initialFiles.forEach((file) => {
+			files.forEach((file) => {
 				// 각 파일의 URI 파싱
-				const modelUri = monaco.Uri.parse(file.uriString)
+				const modelUri = monaco.Uri.parse(file.name)
 				let model = monaco.editor.getModel(modelUri)
 
 				if (!model || model.isDisposed()) {
@@ -136,7 +90,7 @@ export const Editor = () => {
 					)
 				}
 				// 생성/확보한 모델을 Map에 추가
-				initialModels.set(file.uriString, model)
+				initialModels.set(file.name, model)
 			})
 			// models 상태를 생성된 초기 모델들로 한번에 설정
 			setModels(initialModels)
@@ -149,14 +103,13 @@ export const Editor = () => {
 
 					setFiles((prevFiles) =>
 						prevFiles.map((file) =>
-							file.uriString === currentUri
+							file.uri === currentUri
 								? { ...file, content: editorInstance.getValue() }
 								: file,
 						),
 					)
 				}
 			})
-
 			setEditor(editorInstance)
 		}
 
@@ -169,11 +122,11 @@ export const Editor = () => {
 
 	useEffect(() => {
 		if (editor && activeFileId) {
-			const activeFile = files.find((f) => f.id === activeFileId)
+			const activeFile = files.find((f) => f.name === activeFileId)
 			if (activeFile) {
-				let model = models.get(activeFile.uriString)
+				let model = models.get(activeFile.uri)
 
-				const modelUri = monaco.Uri.parse(activeFile.uriString)
+				const modelUri = monaco.Uri.parse(activeFile.uri)
 
 				if (!model || model.isDisposed()) {
 					const existingGlobalModel = monaco.editor.getModel(modelUri)
@@ -190,7 +143,7 @@ export const Editor = () => {
 						)
 					}
 					setModels((prevModels) =>
-						new Map(prevModels).set(activeFile.uriString, model!),
+						new Map(prevModels).set(activeFile.uri, model!),
 					)
 				}
 				if (editor.getModel() !== model) {
@@ -200,7 +153,7 @@ export const Editor = () => {
 		}
 	}, [editor, activeFileId, files])
 
-	const activeFile = files.find((f) => f.id === activeFileId)
+	const activeFile = files.find((f) => f.name === activeFileId)
 
 	const previewScript = `
 import * as esbuild from 'esbuild-wasm';
@@ -309,10 +262,10 @@ try {
 			<div className="mb-1.5 flex-shrink-0 border-gray-300 border-b pb-1.5">
 				{files.map((file) => (
 					<Button
-						key={file.id}
-						variant={file.id === activeFileId ? "default" : "outline"}
+						key={file.name}
+						variant={file.name === activeFileId ? "default" : "outline"}
 						size="sm"
-						onClick={() => setActiveFileId(file.id)}
+						onClick={() => setActiveFileId(file.name)}
 						className="mr-1.5"
 					>
 						{file.name}

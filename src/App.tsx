@@ -1,7 +1,7 @@
-import { Editor } from "./components/editor"
+import { EditorWrapper } from "./components/editorContext"
 import "./globals.css"
 function App() {
-  return <Editor />
+	return <EditorWrapper />
 }
 
 export default App
