@@ -1,21 +1,13 @@
 import { Button } from "@/ui/button"
+import { observer } from "mobx-react-lite"
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
 import { useEffect, useRef, useState } from "react"
 import ts from "typescript"
-import browser from "../raw/browser?raw"
+import { editorStore } from "../store/editor"
 import { Input } from "../ui/input"
-import { useEditorContext } from "./editorContext"
 
-const defaultPackages = {
-	react: "https://esm.sh/react",
-	"react/": "https://esm.sh/react/",
-	"react-dom": "https://esm.sh/react-dom",
-	"react-dom/": "https://esm.sh/react-dom/",
-	"esbuild-wasm": "https://esm.sh/esbuild-wasm",
-}
-
-export const Editor = () => {
-	const { files, setFiles } = useEditorContext("editor")
+const Editor = () => {
+	const { files, updateFileContent } = editorStore
 
 	const [editor, setEditor] =
 		useState<monaco.editor.IStandaloneCodeEditor | null>(null)
@@ -97,17 +89,11 @@ export const Editor = () => {
 
 			editorInstance.onDidChangeModelContent(() => {
 				//에디터 내용 변경 감지 리스너
+
 				const currentModel = editorInstance.getModel()
 				if (currentModel) {
 					const currentUri = currentModel.uri.toString()
-
-					setFiles((prevFiles) =>
-						prevFiles.map((file) =>
-							file.uri === currentUri
-								? { ...file, content: editorInstance.getValue() }
-								: file,
-						),
-					)
+					updateFileContent(currentUri, editorInstance.getValue())
 				}
 			})
 			setEditor(editorInstance)
@@ -153,110 +139,6 @@ export const Editor = () => {
 		}
 	}, [editor, activeFileId, files])
 
-	const activeFile = files.find((f) => f.name === activeFileId)
-
-	const previewScript = `
-import * as esbuild from 'esbuild-wasm';
-
-try {
-  await esbuild.default.initialize({
-    worker: true,
-    wasmURL: 'https://esm.sh/esbuild-wasm/esbuild.wasm',
-  });
-
-  const files = ${JSON.stringify(files)};
-
-  const mainCode = ${JSON.stringify(files?.find((f) => f.name === "main.tsx")?.content)}
-
-  const result = await esbuild.default.build({
-    stdin: {
-      contents: mainCode,
-      loader: 'tsx',
-      resolveDir: 'file:///',
-      sourcefile: 'main.tsx'
-    },
-    bundle: true,
-    format: 'esm',
-    jsx: 'automatic',
-    jsxImportSource: 'react',
-    write: false,
-	plugins: [
-    {
-      name: 'virtual-fs',
-      setup(build) {
-   
-        build.onResolve({ filter: new RegExp('^react/jsx-runtime$')}, () => {
-          return { path: 'https://esm.sh/react/jsx-runtime', external: true }
-        });
-
-        build.onResolve({ filter: /.*/ }, (args) => {
-          if (args.path.startsWith('http') || args.path.startsWith('https')) {
-            return { external: true };
-          }
-          return { path: args.path, namespace: 'virtual-fs' };
-        });
-        
-        // 파일 내용 로드
-        build.onLoad({ filter: /.*/, namespace: 'virtual-fs' }, (args) => {
-          const file = files.find(f => f.name === args.path || './' + f.name === args.path);
-          if (!file) return { contents: console.error("File not found: args.path")};
-          
-          // 로더 결정
-          const loader = file.name.endsWith('.css') ? 'css' : 
-                        file.name.endsWith('.tsx') ? 'tsx' : 
-                        file.name.endsWith('.ts') ? 'ts' : 'js';
-                        
-          return { contents: file.content, loader };
-        });
-      }
-    }
-  ]
-  });
-
- 
-  const oldScript = document.getElementById('preview-script');
-  if (oldScript) oldScript.remove();
-  const root = document.getElementById('root');
-  if (root) root.innerHTML = '';
-
-  const script = document.createElement('script');
-  script.setAttribute('type', 'module');
-  script.setAttribute('id', 'preview-script');
-  script.textContent = result.outputFiles[0].text;
-  document.head.appendChild(script);
-} catch (e) {
-  console.error("Error in preview script:", e);
-  const errorDiv = document.createElement('pre');
-  errorDiv.style.color = 'red';
-  errorDiv.textContent = e.message + '\\n' + e.stack;
-  document.body.innerHTML = '';
-  document.body.appendChild(errorDiv);
-}`.trim()
-
-	const sources = {
-		imports: defaultPackages,
-	}
-
-	const srcDoc = `
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Preview</title>
-	<script>${browser}</script>
-    <script type="importmap">
-      ${JSON.stringify(sources, null, 2)}
-    </script>
-    <script type="module">
-      ${previewScript}
-    </script>
-  </head>
-  <body>
-    <div id="root">Loading Preview...</div>
-  </body>
-</html>
-`
-
 	return (
 		<div className="box-border flex h-screen w-screen min-w-full flex-col gap-2.5 p-2.5">
 			<div className="mb-1.5 flex-shrink-0 border-gray-300 border-b pb-1.5">
@@ -275,11 +157,6 @@ try {
 
 			<div className="flex h-[calc(100%-80px)] flex-grow gap-2.5">
 				<div ref={monacoEl} className="flex-1 border border-gray-500" />
-				<iframe
-					title="preview"
-					key={activeFileId + activeFile?.content}
-					srcDoc={srcDoc}
-				/>
 			</div>
 			<form
 				onSubmit={(e) => {
@@ -303,3 +180,5 @@ try {
 		</div>
 	)
 }
+
+export default observer(Editor)
