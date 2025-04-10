@@ -6,11 +6,13 @@ import tsconfigPaths from "vite-tsconfig-paths"
 // https://vite.dev/config/
 export default defineConfig({
 	plugins: [react(), tailwindcss(), tsconfigPaths()],
+
 	build: {
+		emptyOutDir: true,
 		rollupOptions: {
 			input: {
 				main: "index.html",
-				worker: "worker.js",
+				worker: "worker.ts",
 			},
 			output: {
 				entryFileNames: "[name].js",
