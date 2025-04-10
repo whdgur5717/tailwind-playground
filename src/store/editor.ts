@@ -1,18 +1,12 @@
+import { makeAutoObservable } from "mobx"
 import { Context } from "radix-ui/internal"
 import { type SetStateAction, useState } from "react"
-import { Editor } from "./editor"
 
 interface FileData {
 	name: string
 	language: string
 	uri: string
 	content: string
-}
-
-interface EditorContextType {
-	files: FileData[]
-	setFiles: React.Dispatch<SetStateAction<EditorContextType["files"]>>
-	packages: Record<string, string>
 }
 
 const initialFiles: FileData[] = [
@@ -53,9 +47,6 @@ if (rootElement) {
 	},
 ]
 
-export const [EditorProvider, useEditorContext] =
-	Context.createContext<EditorContextType>("editor")
-
 const defaultPackages = {
 	react: "https://esm.sh/react",
 	"react/": "https://esm.sh/react/",
@@ -64,18 +55,20 @@ const defaultPackages = {
 	"esbuild-wasm": "https://esm.sh/esbuild-wasm",
 }
 
-export const EditorWrapper = () => {
-	const [files, setFiles] = useState<FileData[]>(initialFiles)
-
-	return (
-		<div>
-			<EditorProvider
-				files={files}
-				setFiles={setFiles}
-				packages={defaultPackages}
-			>
-				<Editor />
-			</EditorProvider>
-		</div>
-	)
+class EditorStore {
+	files: FileData[]
+	constructor() {
+		makeAutoObservable(this, {}, { autoBind: true })
+		this.files = initialFiles
+	}
+	setFiles(file: FileData) {
+		this.files = [...this.files, file]
+	}
+	updateFileContent(uri: string, content: string) {
+		this.files = this.files.map((file) =>
+			file.uri === uri ? { ...file, content } : file,
+		)
+	}
 }
+
+export const editorStore = new EditorStore()
