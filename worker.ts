@@ -4,25 +4,28 @@ import {
 	initialize,
 } from "monaco-editor/esm/vs/language/typescript/ts.worker.js"
 import ts from "typescript"
-export class CustomTSWorker extends TypeScriptWorker {
-	fileEntries = new Map()
-	urlEntries = new Map()
 
-	constructor(ctx, createData) {
+export class CustomTSWorker extends TypeScriptWorker {
+	fileEntries = new Map<string, string>()
+	urlEntries = new Map<string, string>()
+
+	// biome-ignore lint/suspicious/noExplicitAny: cannot find ICreateData type
+	constructor(ctx: monaco.worker.IWorkerContext, createData: any) {
 		super(ctx, createData)
+
 		console.log(
 			"[CustomTSWorker] Constructor started. Populating fileEntries...",
 		)
-		this.fileEntries = new Map()
+		this.fileEntries = new Map<string, string>()
 	}
 
-	readFile(path) {
+	readFile(path: string) {
 		console.log("Reading file:", path)
 		const file = super.readFile(path) || this.fileEntries.get(path)
 		return file
 	}
 
-	fileExists(path) {
+	fileExists(path: string) {
 		const exists = super.fileExists(path) || this.fileEntries.has(path)
 		return exists
 	}
@@ -34,18 +37,18 @@ export class CustomTSWorker extends TypeScriptWorker {
 		return fileNames
 	}
 
-	_getModel(fileName) {
+	_getModel(fileName: string) {
 		const model = super._getModel(fileName) || this.asModel(fileName)
 		return model
 	}
 
-	_getScriptText(fileName) {
+	_getScriptText(fileName: string) {
 		const text =
 			super._getScriptText(fileName) || this.fileEntries.get(fileName)
 		return text
 	}
 
-	asModel(fileName) {
+	asModel(fileName: string) {
 		const txt = this.fileEntries.get(fileName)
 		if (!txt) {
 			return null
@@ -59,23 +62,22 @@ export class CustomTSWorker extends TypeScriptWorker {
 		}
 	}
 
-	addFile(path, content) {
+	addFile(path: string, content: string) {
 		this.fileEntries.set(path, content)
 	}
 
-	addUrl(path, content) {
+	addUrl(path: string, content: string) {
 		this.urlEntries.set(path, content)
 		console.log(this.urlEntries)
 	}
 
-	resolveModuleNames(
-		moduleNames,
-		containingFile,
-		reusedNames,
-		redirectedReference,
-		options,
-		containingSourceFile,
-	) {
+	resolveModuleNames = (
+		moduleNames: string[],
+		containingFile: string,
+		reusedNames: string[] | undefined,
+		redirectedReference: ts.ResolvedProjectReference | undefined,
+		options: ts.CompilerOptions,
+	): Array<ts.ResolvedModule | undefined> => {
 		const resolvedModules = []
 		const basePath = "inmemory://model/node_modules/"
 
@@ -118,9 +120,9 @@ export class CustomTSWorker extends TypeScriptWorker {
 	}
 }
 
-self.onmessage = (e) => {
+self.onmessage = () => {
 	try {
-		initialize((ctx, createData) => {
+		initialize((ctx: monaco.worker.IWorkerContext, createData: ICreateData) => {
 			return new CustomTSWorker(ctx, createData)
 		})
 	} catch (error) {
