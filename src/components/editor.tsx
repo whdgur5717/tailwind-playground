@@ -1,12 +1,14 @@
-import { Button } from "@/ui/button"
 import { observer } from "mobx-react-lite"
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
 import { useEffect, useRef, useState } from "react"
 import ts from "typescript"
 import { editorStore } from "../store/editor"
-import { Input } from "../ui/input"
 
-const Editor = () => {
+interface EditorProps {
+	className?: string
+}
+
+const Editor = ({ className }: EditorProps) => {
 	const { files, updateFileContent } = editorStore
 
 	const [editor, setEditor] =
@@ -139,46 +141,7 @@ const Editor = () => {
 		}
 	}, [editor, activeFileId, files])
 
-	return (
-		<div className="box-border flex h-screen w-screen min-w-full flex-col gap-2.5 p-2.5">
-			<div className="mb-1.5 flex-shrink-0 border-gray-300 border-b pb-1.5">
-				{files.map((file) => (
-					<Button
-						key={file.name}
-						variant={file.name === activeFileId ? "default" : "outline"}
-						size="sm"
-						onClick={() => setActiveFileId(file.name)}
-						className="mr-1.5"
-					>
-						{file.name}
-					</Button>
-				))}
-			</div>
-
-			<div className="flex h-[calc(100%-80px)] flex-grow gap-2.5">
-				<div ref={monacoEl} className="flex-1 border border-gray-500" />
-			</div>
-			<form
-				onSubmit={(e) => {
-					e.preventDefault()
-					const formData = new FormData(e.currentTarget)
-					const packageUrl = formData.get("packageUrl")
-					if (typeof packageUrl === "string" && packageUrl.trim()) {
-						addPackage(packageUrl.trim())
-					}
-				}}
-				className="flex flex-shrink-0 gap-1.5 py-1.5"
-			>
-				<Input
-					type="url"
-					pattern="https://.*"
-					name="packageUrl"
-					placeholder="Enter package URL (e.g., https://esm.sh/@radix-ui/react-dialog)"
-				/>
-				<Button type="submit">Add Types</Button>
-			</form>
-		</div>
-	)
+	return <div ref={monacoEl} className={className} />
 }
 
 export default observer(Editor)
