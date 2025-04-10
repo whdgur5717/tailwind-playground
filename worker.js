@@ -4,7 +4,7 @@ import {
 	initialize,
 } from "monaco-editor/esm/vs/language/typescript/ts.worker.js"
 import ts from "typescript"
-class CustomTSWorker extends TypeScriptWorker {
+export class CustomTSWorker extends TypeScriptWorker {
 	fileEntries = new Map()
 	urlEntries = new Map()
 
@@ -17,7 +17,7 @@ class CustomTSWorker extends TypeScriptWorker {
 	}
 
 	readFile(path) {
-		// console.log("Reading file:", path);
+		console.log("Reading file:", path)
 		const file = super.readFile(path) || this.fileEntries.get(path)
 		return file
 	}
