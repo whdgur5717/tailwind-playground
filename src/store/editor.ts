@@ -1,6 +1,4 @@
 import { makeAutoObservable } from "mobx"
-import { Context } from "radix-ui/internal"
-import { type SetStateAction, useState } from "react"
 
 interface FileData {
 	name: string
@@ -9,7 +7,7 @@ interface FileData {
 	content: string
 }
 
-const initialFiles: FileData[] = [
+const defaultFiles: FileData[] = [
 	{
 		name: "main.tsx",
 		language: "typescript",
@@ -59,7 +57,7 @@ class EditorStore {
 	files: FileData[]
 	constructor() {
 		makeAutoObservable(this, {}, { autoBind: true })
-		this.files = initialFiles
+		this.files = defaultFiles
 	}
 	setFiles(file: FileData) {
 		this.files = [...this.files, file]
