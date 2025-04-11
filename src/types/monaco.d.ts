@@ -1,29 +1,29 @@
-/// <reference path="../../node_modules/monaco-editor/monaco.d.ts" />
-/// <reference path="../../node_modules/typescript/lib/typescript.d.ts" />
-
 //worker.ts에서 import하고 있는 경로 이외로는 불러올 수가 없음 -> 현재 import경로에서 타입 추론이 되지 않음
 //package.json의 types, monaco-editor의 여러 d.ts를 살펴봐도 명시되지 않은 타입들이 많음 -> import문을 변경해도 추론되지 않는 타입들이 존재
 //타입 추론이 가능하게끔 d.ts파일을 직접 정의
 //최대한 패키지에서 제공하는 타입 사용. 없는 경우에는 소스코드 내부에서 찾아서 제일 유사하게 사용
-
-interface ICreateData {
-	compilerOptions: import("typescript").CompilerOptions
-	extraLibs: monaco.languages.typescript.IExtraLibs
-	customWorkerPath?: string
-	inlayHintsOptions?: import("typescript").UserPreferences
-}
+//typescript lint error를 막기위한 임시 조치일 뿐
 
 declare module "monaco-editor/esm/vs/base/common/uri.*" {
 	export const URI: typeof monaco.Uri
 }
 //https://github.com/microsoft/monaco-editor/blob/main/src/language/typescript/tsWorker.ts
 declare module "monaco-editor/esm/vs/language/typescript/ts.worker.*" {
+	interface ICreateData {
+		compilerOptions: import("typescript").CompilerOptions
+		extraLibs: monaco.languages.typescript.IExtraLibs
+		customWorkerPath?: string
+		inlayHintsOptions?: import("typescript").UserPreferences
+	}
 	export class TypeScriptWorker
 		implements
 			monaco.languages.typescript.TypeScriptWorker,
 			ts.LanguageServiceHost
 	{
-		constructor(ctx: monaco.worker.IWorkerContext, createData: ICreateData)
+		constructor(
+			ctx: import("monaco-editor").worker.IWorkerContext,
+			createData: ICreateData,
+		)
 		fileExists(path: string): boolean
 		readFile(path: string): string | undefined
 		getScriptFileNames(): string[]
