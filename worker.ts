@@ -1,5 +1,6 @@
 import { URI as Uri } from "monaco-editor/esm/vs/base/common/uri.js"
 import {
+	type ICreateData,
 	TypeScriptWorker,
 	initialize,
 } from "monaco-editor/esm/vs/language/typescript/ts.worker.js"
@@ -9,8 +10,10 @@ export class CustomTSWorker extends TypeScriptWorker {
 	fileEntries = new Map<string, string>()
 	urlEntries = new Map<string, string>()
 
-	// biome-ignore lint/suspicious/noExplicitAny: cannot find ICreateData type
-	constructor(ctx: monaco.worker.IWorkerContext, createData: any) {
+	constructor(
+		ctx: import("monaco-editor").worker.IWorkerContext,
+		createData: ICreateData,
+	) {
 		super(ctx, createData)
 
 		console.log(
@@ -122,9 +125,14 @@ export class CustomTSWorker extends TypeScriptWorker {
 
 self.onmessage = () => {
 	try {
-		initialize((ctx: monaco.worker.IWorkerContext, createData: ICreateData) => {
-			return new CustomTSWorker(ctx, createData)
-		})
+		initialize(
+			(
+				ctx: import("monaco-editor").worker.IWorkerContext,
+				createData: ICreateData,
+			) => {
+				return new CustomTSWorker(ctx, createData)
+			},
+		)
 	} catch (error) {
 		console.error("[CustomTSWorker] Error during worker initialization:", error)
 	}
