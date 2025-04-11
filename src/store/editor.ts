@@ -71,10 +71,10 @@ class EditorStore {
 		this.files.set(file.uri, file)
 	}
 
-	updateFileContent(uri: string, content: string) {
-		const file = this.files.get(uri)
+	updateFileContent(fileName: string, content: string) {
+		const file = this.files.get(fileName)
 		if (file) {
-			this.files.set(uri, { ...file, content })
+			this.files.set(fileName, { ...file, content })
 		}
 	}
 
