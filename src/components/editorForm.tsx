@@ -1,15 +1,32 @@
 import { Button } from "@/ui/button"
 import { Input } from "@/ui/input"
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
+import * as monaco from "monaco-editor"
 import { useRef } from "react"
 import ts from "typescript"
+import type { CustomTSWorker } from "../../worker"
+
+/**monaco editor의 TypeScriptWorker 타입을 CustomTSWorker로 추론되게 하기 위한 함수*/
+function isCustomWorker(
+	worker: monaco.languages.typescript.TypeScriptWorker | CustomTSWorker,
+): worker is CustomTSWorker {
+	// biome-ignore lint/suspicious/noExplicitAny: to decide worker method
+	const potentialWorker = worker as any
+	return (
+		potentialWorker.addFile &&
+		potentialWorker.addUrl &&
+		typeof potentialWorker.addFile === "function" &&
+		typeof potentialWorker.addUrl === "function"
+	)
+}
 
 const EditorForm = () => {
 	const inputRef = useRef<HTMLInputElement>(null)
-
 	const addPackage = async (path: string) => {
 		const worker = await monaco.languages.typescript.getTypeScriptWorker()
 		const currentWorker = await worker()
+		if (!isCustomWorker(currentWorker)) {
+			return
+		}
 
 		const response = await fetch(path)
 		const typePath = response.headers.get("X-Typescript-Types")
@@ -46,7 +63,7 @@ const EditorForm = () => {
 		await processTypeFile(typePath)
 
 		Object.entries(importMap).forEach(([key, value]) =>
-			currentWorker.addFile("inmemory://model/node_modules/" + key, value),
+			currentWorker.addFile(`inmemory://model/node_modules/${key}`, value),
 		)
 	}
 	return (
