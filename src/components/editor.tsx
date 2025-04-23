@@ -13,7 +13,7 @@ const Editor = ({ className }: EditorProps) => {
 	const [editor, setEditor] =
 		useState<monaco.editor.IStandaloneCodeEditor | null>(null)
 	const monacoEl = useRef<HTMLDivElement | null>(null)
-	const [activeFileId, setActiveFileId] = useState<string>(files[0].name)
+	const [activeFileId, setActiveFileId] = useState<string>("app.tsx")
 	const [models, setModels] = useState<Map<string, monaco.editor.ITextModel>>(
 		new Map(),
 	)
@@ -51,7 +51,7 @@ const Editor = ({ className }: EditorProps) => {
 				const currentModel = editorInstance.getModel()
 				if (currentModel) {
 					const currentUri = currentModel.uri.toString()
-					updateFileContent(currentUri, editorInstance.getValue())
+					updateFileContent(activeFileId, editorInstance.getValue())
 				}
 			})
 			setEditor(editorInstance)
@@ -66,7 +66,7 @@ const Editor = ({ className }: EditorProps) => {
 
 	useEffect(() => {
 		if (editor && activeFileId) {
-			const activeFile = files.find((f) => f.name === activeFileId)
+			const activeFile = files.get(activeFileId)
 			if (activeFile) {
 				let model = models.get(activeFile.uri)
 

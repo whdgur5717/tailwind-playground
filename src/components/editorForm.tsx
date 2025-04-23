@@ -1,7 +1,7 @@
 import { Button } from "@/ui/button"
 import { Input } from "@/ui/input"
 import * as monaco from "monaco-editor"
-import { useRef } from "react"
+import { useEffect, useRef } from "react"
 import ts from "typescript"
 import type { CustomTSWorker } from "../../worker"
 
@@ -47,7 +47,6 @@ const EditorForm = () => {
 			importMap[filePath] = text
 
 			const refFiles = ts.preProcessFile(text, true, true)
-			// 원본 코드와 동일하게 조건 유지
 			if (!refFiles.importedFiles.length && !refFiles.referencedFiles.length) {
 				return
 			}
@@ -56,7 +55,8 @@ const EditorForm = () => {
 				await processTypeFile(href)
 			}
 			for (const file of refFiles.importedFiles) {
-				await processTypeFile(file.fileName)
+				const href = new URL(file.fileName, filePath).href
+				await processTypeFile(href)
 			}
 			return importMap
 		}
@@ -65,7 +65,24 @@ const EditorForm = () => {
 		Object.entries(importMap).forEach(([key, value]) =>
 			currentWorker.addFile(`inmemory://model/node_modules/${key}`, value),
 		)
+		return true
 	}
+
+	useEffect(() => {
+		async function initialAdd() {
+			await addPackage("https://esm.sh/react/jsx-runtime")
+			await addPackage("https://esm.sh/react")
+			await addPackage("https://esm.sh/react-dom/client")
+			await addPackage("https://esm.sh/es-toolkit")
+			const worker = await monaco.languages.typescript.getTypeScriptWorker()
+			const currentWorker = await worker()
+			if (!isCustomWorker(currentWorker)) {
+				return
+			}
+		}
+		initialAdd()
+	}, [])
+
 	return (
 		<form
 			onSubmit={async (e) => {

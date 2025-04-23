@@ -1,6 +1,4 @@
-import { makeAutoObservable } from "mobx"
-import { Context } from "radix-ui/internal"
-import { type SetStateAction, useState } from "react"
+import { makeAutoObservable, observable } from "mobx"
 
 interface FileData {
 	name: string
@@ -9,8 +7,8 @@ interface FileData {
 	content: string
 }
 
-const initialFiles: FileData[] = [
-	{
+const defaultFiles: Record<string, FileData> = {
+	"main.tsx": {
 		name: "main.tsx",
 		language: "typescript",
 		uri: "file:///main.tsx",
@@ -25,7 +23,7 @@ if (rootElement) {
 }
     `.trim(),
 	},
-	{
+	"styles.css": {
 		name: "styles.css",
 		language: "css",
 		uri: "file:///styles.css",
@@ -38,16 +36,16 @@ if (rootElement) {
 }
     `.trim(),
 	},
-	{
+	"app.tsx": {
 		name: "app.tsx",
 		language: "typescript",
 		uri: "file:///app.tsx",
 		content: `export const App = () => {
   return <div className='text-blue-600'>Test입니다</div>}`,
 	},
-]
+}
 
-const defaultPackages = {
+const defaultPackages: Record<string, string> = {
 	react: "https://esm.sh/react",
 	"react/": "https://esm.sh/react/",
 	"react-dom": "https://esm.sh/react-dom",
@@ -56,18 +54,32 @@ const defaultPackages = {
 }
 
 class EditorStore {
-	files: FileData[]
+	files = observable.map<string, FileData>()
+	packages = observable.map<string, string>()
+
 	constructor() {
 		makeAutoObservable(this, {}, { autoBind: true })
-		this.files = initialFiles
-	}
-	setFiles(file: FileData) {
-		this.files = [...this.files, file]
-	}
-	updateFileContent(uri: string, content: string) {
-		this.files = this.files.map((file) =>
-			file.uri === uri ? { ...file, content } : file,
+		Object.keys(defaultFiles).forEach((file) =>
+			this.files.set(file, defaultFiles[file]),
 		)
+		Object.keys(defaultPackages).forEach((pkg) =>
+			this.packages.set(pkg, defaultPackages[pkg]),
+		)
+	}
+
+	addFile(file: FileData) {
+		this.files.set(file.uri, file)
+	}
+
+	updateFileContent(fileName: string, content: string) {
+		const file = this.files.get(fileName)
+		if (file) {
+			this.files.set(fileName, { ...file, content })
+		}
+	}
+
+	addPackage(name: string, module: string) {
+		this.packages.set(name, module)
 	}
 }
 

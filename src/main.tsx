@@ -41,7 +41,7 @@ monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
 	module: monaco.languages.typescript.ModuleKind.ESNext,
 	noEmit: true,
 	esModuleInterop: true,
-	jsx: monaco.languages.typescript.JsxEmit.ReactJSX,
+	jsx: "https://esm.sh/react/jsx-runtime",
 	reactNamespace: "React",
 	allowJs: true,
 	checkJs: true,

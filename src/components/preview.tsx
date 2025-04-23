@@ -10,7 +10,8 @@ const defaultPackages = {
 	"esbuild-wasm": "https://esm.sh/esbuild-wasm",
 }
 const Preview = ({ className }: { className?: string }) => {
-	const { files, setFiles } = editorStore
+	const { files } = editorStore
+
 	const previewScript = `
 import * as esbuild from 'esbuild-wasm';
 
@@ -20,9 +21,8 @@ try {
     wasmURL: 'https://esm.sh/esbuild-wasm/esbuild.wasm',
   });
 
-  const files = ${JSON.stringify(files)};
-
-  const mainCode = ${JSON.stringify(files?.find((f) => f.name === "main.tsx")?.content)}
+  const files = new Map(${JSON.stringify(files)})
+  const mainCode = files.get("main.tsx")?.content
 	
   const result = await esbuild.default.build({
     stdin: {
@@ -54,7 +54,8 @@ try {
         
         // 파일 내용 로드
         build.onLoad({ filter: /.*/, namespace: 'virtual-fs' }, (args) => {
-          const file = files.find(f => f.name === args.path || './' + f.name === args.path);
+          console.log(args)
+          const file = files.get(args.path) || files.get(args.path.slice(2));
           if (!file) return { contents: console.error("File not found: args.path")};
           
           // 로더 결정

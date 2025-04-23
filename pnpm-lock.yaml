@@ -17,6 +17,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      es-toolkit:
+        specifier: ^1.35.0
+        version: 1.35.0
       lucide-react:
         specifier: ^0.487.0
         version: 0.487.0(react@19.1.0)
@@ -1475,6 +1478,9 @@ packages:
   enhanced-resolve@5.18.1:
     resolution: {integrity: sha512-ZSW3ma5GkcQBIpwZTSRAI8N71Uuwgs93IezB7mf7R60tC8ZbJideoDNKjHn2O9KIlx6rkGTTEk1xUCK2E1Y2Yg==}
     engines: {node: '>=10.13.0'}
+
+  es-toolkit@1.35.0:
+    resolution: {integrity: sha512-kVHyrRoC0eLc1hWJ6npG8nNFtOG+nWfcMI+XE0RaFO0gxd6Ions8r0O/U64QyZgY7IeidUnS5oZlRZYUgMGCAg==}
 
   esbuild@0.25.2:
     resolution: {integrity: sha512-16854zccKPnC+toMywC+uKNeYSv+/eXkevRAfwRD/G9Cleq66m8XFIrigkbvauLLlCfDL45Q2cWegSg53gGBnQ==}
@@ -3464,6 +3470,8 @@ snapshots:
     dependencies:
       graceful-fs: 4.2.11
       tapable: 2.2.1
+
+  es-toolkit@1.35.0: {}
 
   esbuild@0.25.2:
     optionalDependencies:
