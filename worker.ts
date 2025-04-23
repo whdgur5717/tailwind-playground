@@ -28,8 +28,13 @@ export class CustomTSWorker extends TypeScriptWorker {
 		return file
 	}
 
+	urlList() {
+		return Object.keys(Object.fromEntries(this.fileEntries))
+	}
+
 	fileExists(path: string) {
 		const exists = super.fileExists(path) || this.fileEntries.has(path)
+
 		return exists
 	}
 
@@ -37,6 +42,7 @@ export class CustomTSWorker extends TypeScriptWorker {
 		const fileNames = super
 			.getScriptFileNames()
 			.concat([...this.fileEntries.keys()])
+
 		return fileNames
 	}
 
@@ -66,14 +72,14 @@ export class CustomTSWorker extends TypeScriptWorker {
 	}
 
 	addFile(path: string, content: string) {
+		console.log(`[addFile] Adding file with key: "${path}"`)
+
 		this.fileEntries.set(path, content)
 	}
 
 	addUrl(path: string, content: string) {
 		this.urlEntries.set(path, content)
-		console.log(this.urlEntries)
 	}
-
 	resolveModuleNames = (
 		moduleNames: string[],
 		containingFile: string,
@@ -85,9 +91,7 @@ export class CustomTSWorker extends TypeScriptWorker {
 		const basePath = "inmemory://model/node_modules/"
 
 		console.log(
-			`[CustomTSWorker] resolveModuleNames triggered for ${containingFile}. Resolving: ${moduleNames.join(
-				", ",
-			)}`,
+			`[CustomTSWorker] resolveModuleNames triggered for ${containingFile}. Resolving: ${moduleNames}`,
 		)
 
 		for (const moduleName of moduleNames) {
@@ -98,7 +102,6 @@ export class CustomTSWorker extends TypeScriptWorker {
 				const exactPath = Array.from(this.fileEntries.keys()).filter((key) => {
 					return key.startsWith(basePath + moduleName)
 				})
-
 				resolvedModule = {
 					resolvedFileName: correctPath ? basePath + correctPath : exactPath[0],
 					extension: ts.Extension.Dts,
@@ -109,13 +112,26 @@ export class CustomTSWorker extends TypeScriptWorker {
 					moduleName,
 					containingFile,
 					options,
-					this, // <- 중요: host로 'this'를 전달하여 해당 class의 메서드를 사용하게 할수 있는듯
+					this,
 				)
-				if (standardResult.resolvedModule) {
+				if (
+					standardResult.resolvedModule === undefined &&
+					standardResult.failedLookupLocations.length > 0
+				) {
+					standardResult.failedLookupLocations.forEach((location) => {
+						location = location.replace("https:/", "https://")
+						if (this.fileEntries.get(location)) {
+							resolvedModule = {
+								resolvedFileName: location,
+								extension: ts.Extension.Dts,
+								isExternalLibraryImport: true,
+							}
+						}
+					})
+				} else if (standardResult.resolvedModule) {
 					resolvedModule = standardResult.resolvedModule
 				}
 			}
-
 			resolvedModules.push(resolvedModule) // 찾았으면 ResolvedModule 객체, 못 찾았으면 undefined 추가
 		}
 
@@ -137,3 +153,5 @@ self.onmessage = () => {
 		console.error("[CustomTSWorker] Error during worker initialization:", error)
 	}
 }
+//entry파일을 하나 찾음
+//이 안에있는 import문들을 다 하나씩 모듈해석을 보내는데 -> 왜 추가를해도안되지
