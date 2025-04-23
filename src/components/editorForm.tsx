@@ -1,5 +1,4 @@
-import { Button } from "@/ui/button"
-import { Input } from "@/ui/input"
+import { Button } from "@/components/button"
 import * as monaco from "monaco-editor"
 import { useEffect, useRef } from "react"
 import ts from "typescript"
@@ -21,6 +20,7 @@ function isCustomWorker(
 
 const EditorForm = () => {
 	const inputRef = useRef<HTMLInputElement>(null)
+
 	const addPackage = async (path: string) => {
 		const worker = await monaco.languages.typescript.getTypeScriptWorker()
 		const currentWorker = await worker()
@@ -93,7 +93,7 @@ const EditorForm = () => {
 				await addPackage(inputRef.current.value)
 			}}
 		>
-			<Input ref={inputRef} />
+			<input ref={inputRef} />
 			<Button type="submit">타입 추가</Button>
 		</form>
 	)
