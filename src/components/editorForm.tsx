@@ -1,7 +1,9 @@
+import { Badge } from "@/ui/badge"
 import { Button } from "@/ui/button"
 import { Input } from "@/ui/input"
+import { Plus, X } from "lucide-react"
 import * as monaco from "monaco-editor"
-import { useEffect, useRef } from "react"
+import { useEffect, useState } from "react"
 import ts from "typescript"
 import type { CustomTSWorker } from "../../worker"
 
@@ -20,18 +22,21 @@ function isCustomWorker(
 }
 
 const EditorForm = () => {
-	const inputRef = useRef<HTMLInputElement>(null)
+	const [packageInput, setPackageInput] = useState("")
+	const [packages, setPackages] = useState<string[]>([])
+	const [isLoading, setIsLoading] = useState(false)
+
 	const addPackage = async (path: string) => {
 		const worker = await monaco.languages.typescript.getTypeScriptWorker()
 		const currentWorker = await worker()
 		if (!isCustomWorker(currentWorker)) {
-			return
+			return false
 		}
 
 		const response = await fetch(path)
 		const typePath = response.headers.get("X-Typescript-Types")
 		if (!typePath) {
-			return
+			return false
 		}
 
 		currentWorker.addUrl(path, typePath)
@@ -68,34 +73,91 @@ const EditorForm = () => {
 		return true
 	}
 
+	const handleAddPackage = async (e: React.FormEvent) => {
+		e.preventDefault()
+		if (!packageInput.trim() || isLoading) return
+
+		setIsLoading(true)
+		try {
+			const packageUrl = packageInput.startsWith("https://")
+				? packageInput
+				: `https://esm.sh/${packageInput}`
+
+			const success = await addPackage(packageUrl)
+			if (success) {
+				setPackages((prev) => [...prev, packageInput.trim()])
+				setPackageInput("")
+			}
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	const removePackage = (packageToRemove: string) => {
+		setPackages((prev) => prev.filter((pkg) => pkg !== packageToRemove))
+	}
+
 	useEffect(() => {
 		async function initialAdd() {
-			await addPackage("https://esm.sh/react/jsx-runtime")
-			await addPackage("https://esm.sh/react")
-			await addPackage("https://esm.sh/react-dom/client")
-			await addPackage("https://esm.sh/es-toolkit")
-			const worker = await monaco.languages.typescript.getTypeScriptWorker()
-			const currentWorker = await worker()
-			if (!isCustomWorker(currentWorker)) {
-				return
+			const initialPackages = [
+				"https://esm.sh/react/jsx-runtime",
+				"https://esm.sh/react",
+				"https://esm.sh/react-dom/client",
+				"https://esm.sh/es-toolkit",
+			]
+
+			for (const pkg of initialPackages) {
+				await addPackage(pkg)
 			}
+
+			setPackages(["react", "react-dom/client", "es-toolkit"])
 		}
 		initialAdd()
 	}, [])
 
 	return (
-		<form
-			onSubmit={async (e) => {
-				if (inputRef.current === null) {
-					return
-				}
-				e.preventDefault()
-				await addPackage(inputRef.current.value)
-			}}
-		>
-			<Input ref={inputRef} />
-			<Button type="submit">타입 추가</Button>
-		</form>
+		<div className="flex flex-col gap-4 border-border border-b bg-background px-6 py-4">
+			<div className="flex flex-col gap-2">
+				<h2 className="font-semibold text-foreground text-sm">
+					Package Manager
+				</h2>
+				<form onSubmit={handleAddPackage} className="flex gap-2">
+					<Input
+						value={packageInput}
+						onChange={(e) => setPackageInput(e.target.value)}
+						placeholder="lodash@4.17.21"
+						disabled={isLoading}
+						className="flex-1"
+					/>
+					<Button type="submit" disabled={isLoading || !packageInput.trim()}>
+						<Plus className="size-4" />
+						Add
+					</Button>
+				</form>
+			</div>
+
+			{packages.length > 0 && (
+				<div className="flex flex-wrap gap-2">
+					{packages.map((pkg) => (
+						<Badge
+							key={pkg}
+							variant="secondary"
+							className="cursor-pointer hover:bg-secondary/60"
+						>
+							{pkg}
+							<button
+								type="button"
+								onClick={() => removePackage(pkg)}
+								className="ml-1 rounded-sm hover:bg-destructive/20"
+								aria-label={`Remove ${pkg}`}
+							>
+								<X className="size-3" />
+							</button>
+						</Badge>
+					))}
+				</div>
+			)}
+		</div>
 	)
 }
 

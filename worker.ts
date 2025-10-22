@@ -25,6 +25,7 @@ export class CustomTSWorker extends TypeScriptWorker {
 	readFile(path: string) {
 		console.log("Reading file:", path)
 		const file = super.readFile(path) || this.fileEntries.get(path)
+		console.log(this.fileEntries)
 		return file
 	}
 
@@ -93,10 +94,9 @@ export class CustomTSWorker extends TypeScriptWorker {
 		console.log(
 			`[CustomTSWorker] resolveModuleNames triggered for ${containingFile}. Resolving: ${moduleNames}`,
 		)
-
 		for (const moduleName of moduleNames) {
 			let resolvedModule = undefined
-
+			console.log(moduleName)
 			if (moduleName.includes("esm.sh")) {
 				const correctPath = this.urlEntries.get(moduleName)
 				const exactPath = Array.from(this.fileEntries.keys()).filter((key) => {
@@ -114,6 +114,7 @@ export class CustomTSWorker extends TypeScriptWorker {
 					options,
 					this,
 				)
+				console.log(standardResult)
 				if (
 					standardResult.resolvedModule === undefined &&
 					standardResult.failedLookupLocations.length > 0

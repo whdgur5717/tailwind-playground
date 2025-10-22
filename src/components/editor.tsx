@@ -50,7 +50,6 @@ const Editor = ({ className }: EditorProps) => {
 
 				const currentModel = editorInstance.getModel()
 				if (currentModel) {
-					const currentUri = currentModel.uri.toString()
 					updateFileContent(activeFileId, editorInstance.getValue())
 				}
 			})
